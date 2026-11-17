@@ -31,7 +31,7 @@ It never sends email and never permanently deletes anything.
 5. **First deploy:** `npx wrangler deploy`. It prints the address (`https://janet-mail.<something>.workers.dev`). Put that in `settings.js` as `publicUrl` and deploy again.
 6. **GitHub sign-in app:** github.com/settings/applications/new, with Homepage URL = your address and Authorization callback URL = your address + `/callback`. Then `scripts/set-github.sh` (or `scripts/dialog-github-secret.sh` for the secret in a pop-up) to store the Client ID and a new client secret.
 7. **Mailbox passwords:** `scripts/dialog-add.sh all` asks for each mailbox's app password in a Mac pop-up, checks it by reading the 5 newest messages, and stores it in Cloudflare. One mailbox at a time: `scripts/dialog-add.sh <id>`.
-8. **Connect Claude:** claude.ai, Settings, Connectors, Add custom connector, address + `/mcp`. Approve, then sign in with GitHub.
+8. **Connect Claude:** in the Claude desktop app, **Customize** → **Connectors** → **Add** → **Add custom connector**; name it, paste the address + `/mcp`, **Continue**, **Add**, **Connect**, then sign in with GitHub.
 
 Optional: `scripts/install-rules-backup.sh` saves a copy of your sender rules to `backups/` on this Mac every evening.
 
@@ -51,7 +51,7 @@ You are setting this up for someone who isn't a developer, in the Code tab of th
 8. **GitHub sign-in app.** They open github.com/settings/applications/new and fill in: Application name `My mail connector`; Homepage URL = the address; Authorization callback URL = the address + `/callback`. They click **Register application**, then **Generate a new client secret**, and keep that page open. They paste the **Client ID** (public, fine in chat) to you; store it with `printf '%s' '<client id>' | npx wrangler secret put GITHUB_CLIENT_ID`. Then run `scripts/dialog-github-secret.sh`: a pop-up appears and they paste the **client secret** there. You should see "GitHub secret saved".
 9. **Mailboxes.** They have each app password ready (their setup chat led them to make them). Run `scripts/dialog-add.sh all`: one pop-up per mailbox, they paste that mailbox's app password. Each should end with "connected". A failure usually means a mistyped password or two-step sign-in off; fix and rerun `scripts/dialog-add.sh <id>`.
 10. **Deploy** once more: `npx wrangler deploy`.
-11. **Connect Claude.** In the Claude app: Settings → Connectors → Add custom connector. Name it `My mail`; URL = the address + `/mcp`. They click Connect, approve, and sign in with GitHub. Then, in a new chat, ask Claude to list the mail accounts: every mailbox should be there.
+11. **Connect Claude.** In the Claude desktop app: **Customize** → **Connectors** → **Add** → **Add custom connector**. Name `My mail`; address = the connector's address + `/mcp`; **Continue**, then **Add**, then **Connect**; they sign in with GitHub and approve. Then, in a new chat, ask Claude to list the mail accounts: every mailbox should be there.
 12. **Report back.** Tell them it's done, give them the connector's name and address, and tell them to go back to their setup chat and say "mail is connected".
 
 ## Changing things later
