@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // The Worker's name. Its address becomes https://janet-mail.<your-subdomain>.workers.dev
+  "name": "janet-mail",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": true,
+  "kv_namespaces": [
+    // Sign-in records (grants, tokens as hashes). scripts/setup-cloudflare.sh fills in the id.
+    { "binding": "OAUTH_KV", "id": "OAUTH_KV_ID_PLACEHOLDER" }
+  ],
+  // The connector's state: sender rules, sweep progress, undo log, confirmations.
+  // D1 rather than KV because KV's free tier (~1,000 writes/day) is too small for
+  // the rule sweep. scripts/setup-cloudflare.sh fills in the database_id.
+  "d1_databases": [
+    { "binding": "STATE_DB", "database_name": "janet-mail-state", "database_id": "STATE_DB_ID_PLACEHOLDER" }
+  ],
+  // Apply the sender rules to new inbox mail every 15 minutes.
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "observability": { "enabled": true }
+  // Personal details (mailboxes, GitHub ID, address, time zone) live in settings.js.
+  // Secrets (stored in Cloudflare by the scripts in scripts/, never in this folder):
+  //   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+  //   one app password per mailbox, named by that mailbox's `secret` in settings.js
+}
