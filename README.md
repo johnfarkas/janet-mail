@@ -35,6 +35,25 @@ It never sends email and never permanently deletes anything.
 
 Optional: `scripts/install-rules-backup.sh` saves a copy of your sender rules to `backups/` on this Mac every evening.
 
+## Led setup (for the Claude Code session doing it)
+
+You are setting this up for someone who isn't a developer, in the Code tab of their Claude desktop app, opened on their home folder. Run every command yourself. Their part is clicks in a browser or a Mac pop-up: give each as numbered steps, one action each, with what they should see, and wait for "done". Passwords, app passwords and the GitHub client secret go only into the Mac pop-ups the scripts open, never into chat. If they paste a secret into chat, tell them to make a new one and carry on. Their setup chat gave you their mailboxes, GitHub username and time zone; ask for anything missing, one question at a time.
+
+1. **Tools.** Run `node --version` and `git --version`.
+   - No Node: they download the LTS installer from nodejs.org, open it and click through (their Mac password goes into the macOS dialog). Check again.
+   - No git: macOS offers to install the Command Line Tools; they click Install and wait about five minutes. Check again.
+2. **Get the code.** `git clone https://github.com/johnfarkas/janet-mail.git ~/janet-mail`, then work in `~/janet-mail`: `npm install`, then `npm test` (all pass).
+3. **Settings.** Fill in `settings.js` yourself from their answers: name, time zone, each mailbox (id, label, host, address, secret name, gmail flag), other addresses, own domains (never a free-mail domain), the iCloud calendar if they have one. Their GitHub ID number: `curl -s https://api.github.com/users/<username>` (the `id` line). Show them the mailbox list and ask them to confirm it.
+4. **Cloudflare sign-in.** Run `npx wrangler login`. A browser page opens: they click **Allow**. You should see "Successfully logged in".
+5. **workers.dev address.** A new Cloudflare account needs one before the first deploy. They open dash.cloudflare.com → Workers & Pages; if asked to choose a subdomain, they pick one (their name works) and confirm.
+6. **Storage.** `scripts/setup-cloudflare.sh`. You should see "KV ready" and "Database ready". If it can't read an id, put the ids from wrangler's output into `wrangler.jsonc` by hand.
+7. **First deploy.** `npx wrangler deploy`. Copy the address it prints into `settings.js` as `publicUrl`, then deploy again.
+8. **GitHub sign-in app.** They open github.com/settings/applications/new and fill in: Application name `My mail connector`; Homepage URL = the address; Authorization callback URL = the address + `/callback`. They click **Register application**, then **Generate a new client secret**, and keep that page open. They paste the **Client ID** (public, fine in chat) to you; store it with `printf '%s' '<client id>' | npx wrangler secret put GITHUB_CLIENT_ID`. Then run `scripts/dialog-github-secret.sh`: a pop-up appears and they paste the **client secret** there. You should see "GitHub secret saved".
+9. **Mailboxes.** They have each app password ready (their setup chat led them to make them). Run `scripts/dialog-add.sh all`: one pop-up per mailbox, they paste that mailbox's app password. Each should end with "connected". A failure usually means a mistyped password or two-step sign-in off; fix and rerun `scripts/dialog-add.sh <id>`.
+10. **Deploy** once more: `npx wrangler deploy`.
+11. **Connect Claude.** In the Claude app: Settings → Connectors → Add custom connector. Name it `My mail`; URL = the address + `/mcp`. They click Connect, approve, and sign in with GitHub. Then, in a new chat, ask Claude to list the mail accounts: every mailbox should be there.
+12. **Report back.** Tell them it's done, give them the connector's name and address, and tell them to go back to their setup chat and say "mail is connected".
+
 ## Changing things later
 
 - Add or remove a mailbox: edit `settings.js`, `npx wrangler deploy`, then `scripts/dialog-add.sh <id>` for a new one.
